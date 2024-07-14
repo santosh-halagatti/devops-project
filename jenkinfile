@@ -1,0 +1,34 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Build') {
+      steps {
+        script {
+          docker.build('devops-project')
+        }
+      }
+    }
+
+    stage('Test') {
+      steps {
+        script {
+          docker.image('devops-project').inside {
+            sh 'npm test'
+          }
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        script {
+          withKubeConfig([credentialsId: 'kubeconfig']) {
+            sh 'kubectl apply -f k8s/deployment.yaml'
+          }
+        }
+      }
+    }
+  }
+}
+
